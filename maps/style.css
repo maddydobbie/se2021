@@ -1,0 +1,150 @@
+#map {
+    height: 100%;
+    width: 100%; 
+  }
+  /* Optional: Makes the sample page fill the window. */
+#navbar {
+    list-style-type:none;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+}
+#navbarli {
+  float:left;
+}
+li a {
+  font-family:'Roboto';
+  display:block;
+  color: black;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration:none;
+}
+li a:hover {
+    background-color: aquamarine;
+}
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  #right-panel {
+    font-family: 'Roboto','sans-serif';
+    line-height: 30px;
+    padding-left: 10px;
+  }
+
+  #right-panel select, #right-panel input {
+    font-size: 15px;
+  }
+
+  #right-panel select {
+    width: 100%;
+  }
+
+  #right-panel i {
+    font-size: 12px;
+  }
+  #right-panel {
+    font-family: Arial, Helvetica, sans-serif;
+    position: absolute;
+    right: 5px;
+    top: 60%;
+    margin-top: -195px;
+    height: 330px;
+    width: 200px;
+    padding: 5px;
+    z-index: 5;
+    border: 1px solid #999;
+    background: #fff;
+  }
+  h1 {
+      font-family:Arial;
+      font-size:60px;
+      text-align:center;
+  }
+  h2 {
+    font-size: 22px;
+    margin: 0 0 5px 0;
+  }
+  ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    height: 271px;
+    width: 200px;
+    overflow-y: scroll;
+  }
+  li {
+    background-color: #f1f1f1;
+    padding: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  li:nth-child(odd) {
+    background-color: #fcfcfc;
+  }
+
+  #listing {
+    position: absolute;
+    width: 250px;
+    height: 470px;
+    overflow: auto;
+    left: 750px;
+    top: 30px;
+    cursor: pointer;
+    overflow-x: hidden;
+  }
+  #findbeaches {
+    
+    position: absolute;
+    text-align: left;
+    width: 200px;
+    font-size: 30px;
+    padding: 4px;
+    top:180px;
+    left: 20px;
+    z-index: 5;
+    background-color: #fff;
+  }
+  #locationField {
+    position: absolute;
+    font-size:30px;
+    width: 500px;
+    height: 50px;
+    left: 240px;
+    top: 180px;
+    z-index: 5;
+    background-color: #fff;
+  }
+
+  #autocomplete {
+    font-size:20px;
+    width: 100%;
+  }
+  .placeIcon {
+    width: 20px;
+    height: 34px;
+    margin: 4px;
+  }
+  #resultsTable {
+    border-collapse: collapse;
+    font-size:20 px;
+    width: 240px;
+  }
+
+  .iw_table_row {
+    height: 18px;
+    top:30px;
+  }
+  .iw_attribute_name {
+    font-weight: bold;
+    text-align: right;
+  }
+  .iw_table_icon {
+    text-align: right;
+  }
+
+
+  

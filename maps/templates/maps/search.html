@@ -1,0 +1,319 @@
+<!DOCTYPE <!DOCTYPE html>
+<html>
+<head>
+    <title>Beach Search </title>
+    <meta charset="utf-8">
+    <style>
+      
+      #map {
+        height: 800px;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      table {
+        font-size: 12px;
+      }
+      #map {
+        width: 750px;
+      }
+      #listing {
+        position: absolute;
+        width: 250px;
+        height: 470px;
+        overflow: auto;
+        left: 750px;
+        top: 30px;
+        cursor: pointer;
+        overflow-x: hidden;
+      }
+      #findbeaches {
+        
+        position: absolute;
+        text-align: left;
+        width: 200px;
+        font-size: 30px;
+        padding: 4px;
+        top:30px;
+        left: 20px;
+        z-index: 5;
+        background-color: #fff;
+      }
+      #locationField {
+        position: absolute;
+        font-size:30px;
+        width: 500px;
+        height: 50px;
+        left: 240px;
+        top: 30px;
+        z-index: 5;
+        background-color: #fff;
+      }
+
+      #autocomplete {
+        font-size:20px;
+        width: 100%;
+      }
+      .placeIcon {
+        width: 20px;
+        height: 34px;
+        margin: 4px;
+      }
+      #resultsTable {
+        border-collapse: collapse;
+        font-size:20 px;
+        width: 240px;
+      }
+
+      .iw_table_row {
+        height: 18px;
+        top:30px;
+      }
+      .iw_attribute_name {
+        font-weight: bold;
+        text-align: right;
+      }
+      .iw_table_icon {
+        text-align: right;
+      }
+    </style>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<body>
+    <div id="findbeaches">
+        Find beaches in:
+    </div>
+    <div id="locationField">
+        <input id="autocomplete" placeholder="Enter a suburb" type="text"/>
+    </div>
+    <div id="map"></div>
+    <div id="listing">
+        <table id="resultsTable">
+            <tbody id="results"></tbody>
+        </table>
+     </div>
+     <div style="display: none">
+            <div id="info-content">
+              <table>
+                  <!-- change frmom url to name-->
+                <tr id="iw-name-row" class="iw_table_row">
+                  <td id="iw-name"></td>
+                </tr>
+                <tr id="iw-address-row" class="iw_table_row">
+                  <td class="iw_attribute_name">Address:</td>
+                  <td id="iw-address"></td>
+                </tr>
+              </table>
+            </div>
+    </div>
+    <script>
+        //globals
+        var map, places, infoWindow;
+        var markers = [];
+        var autocomplete;
+        //restricting country to australia
+        var countryRestrict = {'country': 'au'};
+
+        
+    
+    //making the map (using google documentation conventional names)
+    function initMap(){
+        map = new google.maps.Map(document.getElementById('map'),{
+            zoom: 4,
+            //australia coords
+            center: {lat: -25.3, lng: 133.8},
+            mapTypeControl:false,
+            panControl:false,
+            zoomControl:false,
+            streetviewControl:false
+        });
+
+        //making new infowindow
+        infoWindow = new  google.maps.InfoWindow({
+            //iinfo window displays name of location
+            //as well as address of location 
+            content: document.getElementById('info-content')
+        });
+
+        //getting user's input form autcomplete
+        autocomplete = new google.maps.places.Autocomplete(
+             /** @type {!HTMLInputElement} */(
+            document.getElementById('autocomplete')), {
+               // types:['address'],
+                componentRestrictions: countryRestrict
+            }
+        );
+        //places services thing
+        places = new google.maps.places.PlacesService(map);
+        //when user enters new input
+        autocomplete.addListener('place_changed', onPlaceChanged);
+
+        
+
+    }
+    function onPlaceChanged(){
+        var place = autocomplete.getPlace();
+        if (place.geometry) {
+          map.panTo(place.geometry.location);
+          map.setZoom(13);
+          search_beaches();
+        } else {
+          document.getElementById('autocomplete').placeholder = 'Enter a suburb';
+        }
+    
+    
+    }
+    //after getting location, search location for beaches
+    function search_beaches(){
+        console.log('searched for beach');
+        var search = {
+          bounds: map.getBounds(), 
+          query:'beach'
+        };
+        //performs textsearch since textsearches are based on queries
+        places.textSearch(search, function(results, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            clearResults();
+            clearMarkers();
+            // Create a marker for each beach
+            for (var i = 0; i < results.length; i++) {
+              //must be a beach to place marker
+             // if (results[i].types.includes("natural_feature")){
+              var markerIcon = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+              var markerNumber = i + 1;
+            /// console.log('hi');
+              //console.log(results[i].geometry.location.lat);
+              // Use marker animation to drop the icons incrementally on the map.
+              markers[i] = new google.maps.Marker({
+                position: results[i].geometry.location,
+                animation: google.maps.Animation.DROP,
+                icon:markerIcon
+              });
+
+              //clicking on infowindow shows details
+              if (results[i].types.includes("natural_feature")){
+              markers[i].placeResult = results[i];
+              google.maps.event.addListener(markers[i], 'click', showInfoWindow);
+              setTimeout(dropMarker(i), i * 100);
+              //this handles displaying the list and alot of stuff
+              addResult(results[i], i);
+            }
+        }
+          }
+        });
+        
+    }
+    //copied from google maps documentation since it's hard to be "creative" about this
+    function clearMarkers() {
+        for (var i = 0; i < markers.length; i++) {
+          if (markers[i]) {
+            markers[i].setMap(null);
+          }
+        }
+        markers = [];
+      }
+
+      //again taken from documentation since it's pretty simple
+      function dropMarker(i) {
+        return function() {
+          markers[i].setMap(map);
+        };
+      }
+
+      function addResult(result, i) {
+          
+        var results = document.getElementById('results');
+        
+        
+        //tr is table row
+        var tr = document.createElement('tr');
+        tr.style.backgroundColor = (i % 2 === 0 ? '#F0F0F0' : '#FFFFFF');
+        tr.style.fontSize = "20px";
+        tr.style.height = "40px";
+        tr.style.left = "5px";
+        tr.style.fontFamily = "Arial";
+        //when you click on the list the marker show
+        //not really ncessary since clicking on list lead to prof p age
+
+        
+       
+        tr.onclick = function() {
+          google.maps.event.trigger(markers[i], 'click');
+        };
+        
+        
+
+        //this fills out the list 
+        //not needing anything to do with icon yet
+        //var iconTd = document.createElement('td');
+        var nameTd = document.createElement('td');
+        
+        //basically this is how we would  pass in safety icon
+        //into infowindow 
+        /*
+        var icon = document.createElement('img');
+        
+        icon.src = markerIcon;
+        icon.setAttribute('class', 'placeIcon');
+        icon.setAttribute('className', 'placeIcon');
+        */
+        var name = document.createTextNode(result.name);
+       // iconTd.appendChild(icon);
+        nameTd.appendChild(name);
+
+        
+        //tr.appendChild(iconTd);
+        tr.appendChild(nameTd);
+        results.appendChild(tr);
+        
+      }
+
+      //copied from documentation
+      //hard not to type the exact same thing
+      function clearResults() {
+        var results = document.getElementById('results');
+        while (results.childNodes[0]) {
+          results.removeChild(results.childNodes[0]);
+        }
+      }
+
+      //infowindow details
+      function showInfoWindow() {
+        var marker = this;
+        places.getDetails({placeId: marker.placeResult.place_id},
+            function(place, status) {
+              if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                return;
+              }
+              infoWindow.open(map, marker);
+              //puts iin name and address
+              buildIWContent(place);
+            });
+      }
+      function buildIWContent(place) {
+          //icon will be needed (e.g. for safety, just not now)
+          //it's a good example of how to do hrefs here
+       // document.getElementById('iw-icon').innerHTML = '<img class="hotelIcon" ' +
+          //  'src="' + place.icon + '"/>';
+
+        //displaying the name
+        document.getElementById('iw-name').textContent = place.name;
+        //displaying address in infowindow
+        document.getElementById('iw-address').textContent = place.formatted_address;
+
+
+
+        // documentation has good example of url linking +regex
+        //however not useful here
+
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDz9fmNe7CfsQAmGnhxppo45bICfIkIrc0&libraries=places&callback=initMap"
+    async defer></script>
+</body>
+</html>
