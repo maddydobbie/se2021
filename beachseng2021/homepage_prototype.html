@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Place Search Pagination</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+    </style>
+    <script>
+      // This example requires the Places library. Include the libraries=places
+      // parameter when you first load the API. For example:
+      // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+
+      var map;
+
+      function initMap() {
+        // Create the map.
+       // var pyrmont = {lat: -33.866, lng: 151.196};
+        if (navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(getPosition);
+        }
+        
+      }
+      function getPosition(position){
+          var pos = { 
+              lat:position.coords.latitude,
+              lng:position.coords.longitude
+          };
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: pos,
+          zoom: 17
+        });
+
+        // Create the places service.
+        var service = new google.maps.places.PlacesService(map);
+        
+
+        // Perform a  text search.
+        service.textSearch(
+            {location: pos, radius: 2000, query:'beach'},
+            function(results, status) {
+              if (status !== 'OK') return;
+            
+              getMarineData(results);
+            });
+          
+      }
+
+      function getMarineData(places) {
+        //getting latitude and longittude
+
+        var bounds = new google.maps.LatLngBounds();
+        var placesList = document.getElementById('places');
+
+        for (var i = 0, place; place = places[i]; i++) {
+            marineSafety(place);
+            var li = document.createElement('li');
+            li.textContent = place.name;
+            placesList.appendChild(li);
+            bounds.extend(place.geometry.location);
+        }
+        map.fitBounds(bounds);
+      }
+
+      function marineSafety(place){
+        var lat = place.geometry.location.lat();
+        var long = place.geometry.location.lng();
+        var _ApiKey = 'c6e0fcf7b3324bf389a101322191403';
+        var weatherLoc = lat+","+long;
+        var myRequest = new XMLHttpRequest();
+        myRequest.open('GET','https://cors-anywhere.herokuapp.com/https://api.darksky.net/forecast/535cc4fd71b9bbdcf00b0534e0a74967/'+weatherLoc);
+        myRequest.onload = function(){
+            var myData = JSON.parse(myRequest.responseText);
+            addSafetyMarkers(myData, place);
+
+        }
+        myRequest.send();
+
+      }
+    function addSafetyMarkers(marinedata, place){
+        var danger = 0;
+        var green_icon = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+        var yellow_icon = 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
+        var red_icon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+        var ozone = marinedata.currently.ozone;
+        var windspeed = marinedata.currently.windSpeed;
+        var windgust = marinedata.currently.windGust;
+        if (ozone > 268.85){
+            danger++;
+        }
+        if (windgust > 18.5){
+            danger++;
+        }
+        if (windspeed > 29){
+            danger++;
+        }
+        console.log(danger);
+        var image;
+        if (danger <= 1){
+            image = green_icon;
+        }
+        else if (danger == 2){
+            image = yellow_icon;
+        }
+        else  {
+            image = red_icon;
+        }
+        console.log(danger);
+        console.log(windgust + 'windgust');
+        console.log(ozone + 'ozone');
+
+        console.log(place.geometry.location.lat());
+       // console.log('this is second entry'+ marinedata.data.weather[2].hourly[1].windspeedKmph);
+        
+        //adding the marker based on color
+        var marker = new google.maps.Marker({
+            map:map,
+            icon:image,
+            title:place.name,
+            position:place.geometry.location
+        });
+
+
+    }
+
+
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="right-panel">
+      <h2>Beaches</h2>
+      <ul id="places"></ul>
+    </div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDz9fmNe7CfsQAmGnhxppo45bICfIkIrc0&libraries=places&callback=initMap" async defer></script>
+  </body>
+</html>
